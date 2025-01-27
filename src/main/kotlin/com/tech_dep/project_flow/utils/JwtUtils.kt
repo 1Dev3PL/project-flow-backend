@@ -14,8 +14,6 @@ import kotlin.collections.HashMap
 
 @Service
 class JwtUtils(
-//    @Value("\${tech_dep.app.jwtSecret}")
-//    private val secretKey: String,
     @Value("\${tech_dep.app.jwtExpirationMs}")
     private val jwtExpirationMs: Long,
 ) {
