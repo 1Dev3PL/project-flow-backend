@@ -6,6 +6,7 @@ import com.tech_dep.project_flow.dto.TasksByProjectResponseDto
 import com.tech_dep.project_flow.dto.UpdateTaskRequestDto
 import com.tech_dep.project_flow.entity.Task
 import com.tech_dep.project_flow.entity.toDto
+import com.tech_dep.project_flow.enums.TaskStatus
 import com.tech_dep.project_flow.exception.ProjectNotFoundException
 import com.tech_dep.project_flow.exception.TaskNotFoundException
 import com.tech_dep.project_flow.repository.ProjectRepository
@@ -16,7 +17,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
-
+import java.time.format.DateTimeFormatter
 
 @Service
 class TaskService(
@@ -24,8 +25,9 @@ class TaskService(
     val projectRepository: ProjectRepository,
 ) {
     val log = KotlinLogging.logger {}
+    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
+
     // TODO - Role checking
-    // TODO - Task contain project info, maybe add id in dto?
     fun getTaskById(taskId: Long): TaskDto {
         log.info { "Получение задачи с ID: $taskId" }
         val task = taskRepository.findByIdOrNull(taskId)
@@ -45,11 +47,11 @@ class TaskService(
         val tasks = taskRepository.findAllByProjectId(projectId, pageable)
         return TasksByProjectResponseDto(
             pagesCount = tasks.totalPages,
-            tasks = tasks.content
+            tasks = tasks.content.map {it.toDto()}
         )
     }
 
-    fun addTask(taskDto: CreateTaskRequestDto): Task {
+    fun addTask(taskDto: CreateTaskRequestDto): TaskDto {
         log.info { "Добавление задачи '${taskDto.title}'" }
         val project = projectRepository.findByIdOrNull(taskDto.projectId)
 
@@ -66,18 +68,17 @@ class TaskService(
             description = taskDto.description,
             key = "${project.key}-${keyNumber}",
             type = taskDto.type,
-            status = taskDto.status,
+            status = TaskStatus.OPEN,
             priority = taskDto.priority,
             authorId = taskDto.authorId,
             executorId = taskDto.executorId,
-            createdDate = LocalDateTime.now(),
-            updatedDate = LocalDateTime.now()
+            createdDate = LocalDateTime.now().format(formatter),
         )
 
         val savedTask = taskRepository.save(newTask)
         log.info { "Задача '${taskDto.title}' добавлена" }
 
-        return savedTask
+        return savedTask.toDto()
     }
 
     fun updateTask(taskId: Long, taskDto: UpdateTaskRequestDto): TaskDto {
@@ -95,7 +96,7 @@ class TaskService(
         task.status = taskDto.status
         task.priority = taskDto.priority
         task.executorId = taskDto.executorId
-        task.updatedDate = LocalDateTime.now()
+        task.updatedDate = LocalDateTime.now().format(formatter)
         val updatedTask = taskRepository.save(task)
         log.info { "Задача c ID: $taskId обновлена" }
 

@@ -10,11 +10,11 @@ data class Project(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
     @Column(nullable = false)
-    var name: String,
+    var title: String,
     @Column(columnDefinition = "TEXT")
     var description: String,
     @Column(nullable = false)
     var key: String,
 )
 
-fun Project.toDto(): ProjectDto = ProjectDto(this.name, this.description, this.key)
+fun Project.toDto(): ProjectDto = ProjectDto(this.title, this.description, this.key)

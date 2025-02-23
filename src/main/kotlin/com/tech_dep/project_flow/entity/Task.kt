@@ -7,7 +7,6 @@ import com.tech_dep.project_flow.enums.TaskType
 import jakarta.persistence.*
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
-import java.time.LocalDateTime
 
 @Table(name = "tasks")
 @Entity
@@ -39,12 +38,13 @@ data class Task(
     @Column(name = "executor_id")
     var executorId: Long? = null,
     @Column(name = "created_date", nullable = false, updatable = false)
-    var createdDate: LocalDateTime,
+    var createdDate: String,
     @Column(name = "updated_date")
-    var updatedDate: LocalDateTime
+    var updatedDate: String? = null
 )
 
 fun Task.toDto(): TaskDto = TaskDto(
+    id = this.id!!,
     key = this.key,
     projectId = this.project?.id!!,
     title = this.title,

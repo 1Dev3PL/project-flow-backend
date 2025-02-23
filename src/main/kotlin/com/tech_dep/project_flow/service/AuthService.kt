@@ -41,7 +41,7 @@ class AuthService(
         return userData.toDto()
     }
 
-    fun register(userData: RegisterRequestDto): MessageResponseDto {
+    fun register(userData: RegisterRequestDto, response: HttpServletResponse): UserDto {
         log.info { "Регистрация пользователя ${userData.name}" }
         if (userRepository.existsByEmail(userData.email)) {
             log.error { "Пользователь с email ${userData.email} уже зарегистрирован" }
@@ -53,10 +53,29 @@ class AuthService(
             email = userData.email,
             password = passwordEncoder.encode(userData.password)
         )
-        userRepository.save(newUser)
+        val user = userRepository.save(newUser)
         log.info { "Пользователь ${userData.name} успешно зарегистрирован" }
 
-        return MessageResponseDto("User successfully created", true)
+        val accessToken: String = jwtUtils.generateToken(user)
+        val refreshToken: RefreshToken = refreshTokenUtils.generateRefreshToken(user.email)
+
+        val accessTokenCookie: ResponseCookie = ResponseCookie.from("accessToken", accessToken)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(jwtExpirationMs / 1000)
+            .build()
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+
+        val refreshTokenCookie: ResponseCookie = ResponseCookie.from("refreshToken", refreshToken.token)
+            .httpOnly(true)
+            .secure(true)
+            .path("/api/auth/refresh")
+            .maxAge(jwtRefreshExpirationMs / 1000)
+            .build()
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+
+        return user.toDto()
     }
 
     fun login(loginData: LoginRequestDto, response: HttpServletResponse): UserDto {

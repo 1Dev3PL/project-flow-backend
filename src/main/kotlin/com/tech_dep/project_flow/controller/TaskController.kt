@@ -1,7 +1,6 @@
 package com.tech_dep.project_flow.controller
 
 import com.tech_dep.project_flow.dto.*
-import com.tech_dep.project_flow.entity.Task
 import com.tech_dep.project_flow.service.TaskService
 import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
@@ -24,7 +23,7 @@ class TaskController(
     }
 
     @PostMapping
-    fun addTask(@RequestBody @Validated task: CreateTaskRequestDto): ResponseEntity<Task> {
+    fun addTask(@RequestBody @Validated task: CreateTaskRequestDto): ResponseEntity<TaskDto> {
         return ResponseEntity.ok(taskService.addTask(task))
     }
 

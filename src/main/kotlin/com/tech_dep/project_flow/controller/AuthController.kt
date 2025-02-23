@@ -39,8 +39,11 @@ class AuthController(
         ResponseEntity.ok(authService.fetchAuthData(accessToken))
 
     @PostMapping("/register")
-    fun register(@RequestBody @Validated body: RegisterRequestDto): ResponseEntity<MessageResponseDto> =
-        ResponseEntity(authService.register(body), HttpStatus.CREATED)
+    fun register(
+        @RequestBody @Validated body: RegisterRequestDto,
+        response: HttpServletResponse
+    ): ResponseEntity<UserDto> =
+        ResponseEntity(authService.register(body, response), HttpStatus.CREATED)
 
     @PostMapping("/login")
     fun login(@RequestBody @Validated body: LoginRequestDto, response: HttpServletResponse): ResponseEntity<UserDto> {

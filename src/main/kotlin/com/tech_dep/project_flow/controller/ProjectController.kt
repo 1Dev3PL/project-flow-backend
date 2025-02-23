@@ -28,8 +28,8 @@ class ProjectController(private val projectService: ProjectService) {
     }
 
     @GetMapping("/{id}")
-    fun getProjectDto(@Positive @PathVariable(name = "id") projectId: Long): ResponseEntity<ProjectDto> {
-        return ResponseEntity.ok(projectService.getProjectDto(projectId))
+    fun getProject(@Positive @PathVariable(name = "id") projectId: Long): ResponseEntity<ProjectDto> {
+        return ResponseEntity.ok(projectService.getProject(projectId))
     }
 
     @PutMapping("/{id}")

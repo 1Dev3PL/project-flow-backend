@@ -27,16 +27,16 @@ class ProjectService(
 
     @Transactional
     fun createProject(userId: Long, projectDto: ProjectDto): Project {
-        log.info { "Создание нового проекта: ${projectDto.name}" }
+        log.info { "Создание нового проекта: ${projectDto.title}" }
         val user = userRepository.findByIdOrNull(userId)
         if (user == null) {
             log.error { "Пользователь с ID: $userId не найден" }
             throw UserNotFoundException()
         }
         val project = Project(
-            name = projectDto.name,
+            title = projectDto.title,
             description = projectDto.description,
-            key = projectDto.key,
+            key = projectDto.key.ifEmpty { projectDto.title.replace(Regex("\\s"), "").take(10).uppercase() },
         )
         val savedProject: Project = projectRepository.save(project)
 
@@ -56,7 +56,7 @@ class ProjectService(
         return projectUserRepository.findProjectsByUserId(userId)
     }
 
-    fun getProjectDto(projectId: Long): ProjectDto? {
+    fun getProject(projectId: Long): ProjectDto? {
         log.info { "Получение проекта с ID: $projectId" }
         val project = projectRepository.findByIdOrNull(projectId)
 
@@ -77,7 +77,7 @@ class ProjectService(
             throw ProjectNotFoundException(id)
         }
 
-        project.name = projectDto.name
+        project.title = projectDto.title
         project.description = projectDto.description
         project.key = projectDto.key
         val updatedProject = projectRepository.save(project)

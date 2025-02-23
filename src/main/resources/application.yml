@@ -16,10 +16,9 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
     open-in-view: false
 
 tech_dep:
   app:
-    jwtExpirationMs: 300000
-    jwtRefreshExpirationMs: 300000
+    jwtExpirationMs: 3000000
+    jwtRefreshExpirationMs: 3000000
