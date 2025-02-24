@@ -4,7 +4,7 @@ import com.tech_dep.project_flow.enums.TaskPriority
 import com.tech_dep.project_flow.enums.TaskStatus
 import com.tech_dep.project_flow.enums.TaskType
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Positive
+import java.util.*
 
 data class UpdateTaskRequestDto(
     @field:NotBlank(message = "title is required!")
@@ -13,6 +13,5 @@ data class UpdateTaskRequestDto(
     val type: TaskType,
     val priority: TaskPriority,
     val status: TaskStatus,
-    @field:Positive(message = "executorId must be positive!")
-    val executorId: Long?,
+    val executorId: UUID?,
 )

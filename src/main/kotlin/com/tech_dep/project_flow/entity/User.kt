@@ -4,6 +4,7 @@ import com.tech_dep.project_flow.dto.UserDto
 import jakarta.persistence.*
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import java.util.*
 
 @Table(name = "users")
 @Entity
@@ -11,6 +12,8 @@ data class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
+    @Column(unique = true, nullable = false)
+    val uuid: UUID = UUID.randomUUID(),
     @Column(nullable = false)
     val name: String,
     @Column(unique = true, nullable = false)
@@ -34,4 +37,4 @@ data class User(
     override fun isEnabled(): Boolean = true
 }
 
-fun User.toDto(): UserDto = UserDto(id = this.id!!, name = this.name, email = this.email)
+fun User.toDto(): UserDto = UserDto(id = this.uuid, name = this.name, email = this.email)

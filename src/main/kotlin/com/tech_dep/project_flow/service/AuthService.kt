@@ -6,6 +6,7 @@ import com.tech_dep.project_flow.entity.User
 import com.tech_dep.project_flow.entity.toDto
 import com.tech_dep.project_flow.exception.InvalidTokenException
 import com.tech_dep.project_flow.exception.UserAlreadyExistsException
+import com.tech_dep.project_flow.exception.UserNotFoundException
 import com.tech_dep.project_flow.repository.UserRepository
 import com.tech_dep.project_flow.utils.JwtUtils
 import com.tech_dep.project_flow.utils.RefreshTokenUtils
@@ -133,7 +134,13 @@ class AuthService(
 
     fun logout(logoutData: LogoutRequestDto, response: HttpServletResponse) {
         log.info { "Выход пользователя ${logoutData.email} из аккаунта" }
-        val userData: User = userRepository.findByEmail(logoutData.email)!!
+        val userData = userRepository.findByEmail(logoutData.email)
+
+        if (userData == null) {
+            log.error { "Пользователь с email ${logoutData.email} не найден!" }
+            throw UserNotFoundException()
+        }
+
         refreshTokenUtils.deleteByUserId(userData.id!!)
 
         val accessTokenCookie: ResponseCookie = ResponseCookie.from("accessToken", "none")

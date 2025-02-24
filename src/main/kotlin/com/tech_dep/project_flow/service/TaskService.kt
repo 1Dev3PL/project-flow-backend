@@ -14,10 +14,10 @@ import com.tech_dep.project_flow.repository.TaskRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Service
 class TaskService(
@@ -28,9 +28,9 @@ class TaskService(
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
 
     // TODO - Role checking
-    fun getTaskById(taskId: Long): TaskDto {
+    fun getTaskById(taskId: UUID): TaskDto {
         log.info { "Получение задачи с ID: $taskId" }
-        val task = taskRepository.findByIdOrNull(taskId)
+        val task = taskRepository.findByUuid(taskId)
 
         if (task == null) {
             log.error { "Задача с ID $taskId не найдена!" }
@@ -41,19 +41,19 @@ class TaskService(
         return task.toDto()
     }
 
-    fun getTasksByProjectId(projectId: Long, page: Int, size: Int): TasksByProjectResponseDto {
+    fun getTasksByProjectId(projectId: UUID, page: Int, size: Int): TasksByProjectResponseDto {
         log.info { "Получение задач проекта с ID: $projectId" }
         val pageable: Pageable = PageRequest.of(page - 1, size)
-        val tasks = taskRepository.findAllByProjectId(projectId, pageable)
+        val tasks = taskRepository.findAllByProjectUuid(projectId, pageable)
         return TasksByProjectResponseDto(
             pagesCount = tasks.totalPages,
-            tasks = tasks.content.map {it.toDto()}
+            tasks = tasks.content.map { it.toDto() }
         )
     }
 
     fun addTask(taskDto: CreateTaskRequestDto): TaskDto {
         log.info { "Добавление задачи '${taskDto.title}'" }
-        val project = projectRepository.findByIdOrNull(taskDto.projectId)
+        val project = projectRepository.findByUuid(taskDto.projectId)
 
         if (project == null) {
             log.error { "Проект с ID ${taskDto.projectId} не найден!" }
@@ -81,9 +81,9 @@ class TaskService(
         return savedTask.toDto()
     }
 
-    fun updateTask(taskId: Long, taskDto: UpdateTaskRequestDto): TaskDto {
+    fun updateTask(taskId: UUID, taskDto: UpdateTaskRequestDto): TaskDto {
         log.info { "Обновление задачи c ID: $taskId" }
-        val task = taskRepository.findByIdOrNull(taskId)
+        val task = taskRepository.findByUuid(taskId)
 
         if (task == null) {
             log.error { "Задача с ID: $taskId не найдена для обновления" }

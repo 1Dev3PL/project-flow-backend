@@ -14,8 +14,8 @@ import com.tech_dep.project_flow.repository.ProjectUserRepository
 import com.tech_dep.project_flow.repository.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.transaction.Transactional
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class ProjectService(
@@ -26,17 +26,19 @@ class ProjectService(
     private val log = KotlinLogging.logger {}
 
     @Transactional
-    fun createProject(userId: Long, projectDto: ProjectDto): Project {
-        log.info { "Создание нового проекта: ${projectDto.title}" }
-        val user = userRepository.findByIdOrNull(userId)
+    fun createProject(userId: UUID, createProjectRequest: CreateProjectRequestDto): ProjectDto {
+        log.info { "Создание нового проекта: ${createProjectRequest.title}" }
+        val user = userRepository.findByUuid(userId)
         if (user == null) {
             log.error { "Пользователь с ID: $userId не найден" }
             throw UserNotFoundException()
         }
         val project = Project(
-            title = projectDto.title,
-            description = projectDto.description,
-            key = projectDto.key.ifEmpty { projectDto.title.replace(Regex("\\s"), "").take(10).uppercase() },
+            title = createProjectRequest.title,
+            description = createProjectRequest.description,
+            key = createProjectRequest.key.ifEmpty {
+                createProjectRequest.title.replace(Regex("\\s"), "").take(10).uppercase()
+            },
         )
         val savedProject: Project = projectRepository.save(project)
 
@@ -48,17 +50,17 @@ class ProjectService(
         projectUserRepository.save(projectUser)
         log.info { "Проект с ID ${savedProject.id} успешно создан" }
 
-        return savedProject
+        return savedProject.toDto()
     }
 
-    fun getAllProjects(userId: Long): List<Project> {
+    fun getAllProjects(userId: UUID): List<ProjectDto> {
         log.info { "Получение всех проектов пользователя $userId" }
-        return projectUserRepository.findProjectsByUserId(userId)
+        return projectUserRepository.findProjectsByUserUuid(userId).map { it.toDto() }
     }
 
-    fun getProject(projectId: Long): ProjectDto? {
+    fun getProject(projectId: UUID): ProjectDto {
         log.info { "Получение проекта с ID: $projectId" }
-        val project = projectRepository.findByIdOrNull(projectId)
+        val project = projectRepository.findByUuid(projectId)
 
         if (project == null) {
             log.error { "Проект с ID $projectId не найден" }
@@ -68,51 +70,52 @@ class ProjectService(
         return project.toDto()
     }
 
-    fun updateProject(id: Long, projectDto: ProjectDto): ProjectDto {
-        log.info { "Обновление проекта с ID: $id" }
-        val project = projectRepository.findByIdOrNull(id)
+    fun updateProject(projectId: UUID, updateProjectRequest: UpdateProjectRequestDto): ProjectDto {
+        log.info { "Обновление проекта с ID: $projectId" }
+        val project = projectRepository.findByUuid(projectId)
 
         if (project == null) {
-            log.error { "Проект с ID $id не найден для обновления" }
-            throw ProjectNotFoundException(id)
+            log.error { "Проект с ID $projectId не найден для обновления" }
+            throw ProjectNotFoundException(projectId)
         }
 
-        project.title = projectDto.title
-        project.description = projectDto.description
-        project.key = projectDto.key
+        project.title = updateProjectRequest.title
+        project.description = updateProjectRequest.description
+        project.key = updateProjectRequest.key
         val updatedProject = projectRepository.save(project)
-        log.info { "Проект с ID $id успешно обновлен" }
+        log.info { "Проект с ID $projectId успешно обновлен" }
 
         return updatedProject.toDto()
     }
 
-    fun deleteProject(id: Long) {
-        log.info { "Удаление проекта с ID: $id" }
-        if (projectRepository.existsById(id)) {
-            projectRepository.deleteById(id)
-            log.info { "Проект с ID $id успешно удален" }
+    @Transactional
+    fun deleteProject(projectId: UUID) {
+        log.info { "Удаление проекта с ID: $projectId" }
+        if (projectRepository.findByUuid(projectId) != null) {
+            projectRepository.deleteByUuid(projectId)
+            log.info { "Проект с ID $projectId успешно удален" }
         } else {
-            log.error { "Проект с ID $id не найден для удаления" }
-            throw ProjectNotFoundException(id)
+            log.error { "Проект с ID $projectId не найден для удаления" }
+            throw ProjectNotFoundException(projectId)
         }
     }
 
-    fun addUser(projectId: Long, userData: AddUserRequestDto): MessageResponseDto {
+    fun addUser(projectId: UUID, userData: AddUserRequestDto): MessageResponseDto {
         log.info { "Добавление пользователя с ID: ${userData.userId} в проект с ID: $projectId" }
 
-        val existingProjectUser = projectUserRepository.findByProjectIdAndUserId(projectId, userData.userId)
+        val existingProjectUser = projectUserRepository.findByProjectUuidAndUserUuid(projectId, userData.userId)
         if (existingProjectUser != null) {
             log.error { "Пользователь с ID: ${userData.userId} уже на проекте с ID: $projectId" }
             throw UserAlreadyInProjectException()
         }
 
-        val project = projectRepository.findByIdOrNull(projectId)
+        val project = projectRepository.findByUuid(projectId)
         if (project == null) {
             log.error { "Проект с ID $projectId не найден" }
             throw ProjectNotFoundException(projectId)
         }
 
-        val user = userRepository.findByIdOrNull(userData.userId)
+        val user = userRepository.findByUuid(userData.userId)
         if (user == null) {
             log.error { "Пользователь с ID: ${userData.userId} не найден" }
             throw UserNotFoundException()
@@ -130,16 +133,16 @@ class ProjectService(
     }
 
     // TODO - Pagination
-    fun getUsers(projectId: Long): List<UserDto> {
+    fun getUsers(projectId: UUID): List<UserDto> {
         log.info { "Получение пользователей проекта с ID: $projectId" }
-        val users = projectUserRepository.findUsersByProjectId(projectId)
+        val users = projectUserRepository.findUsersByProjectUuid(projectId)
 
         return users.map { it.toDto() }
     }
 
-    fun changeUserRole(projectId: Long, userId: Long, roleData: ChangeUserRoleRequestDto): MessageResponseDto {
+    fun changeUserRole(projectId: UUID, userId: UUID, roleData: ChangeUserRoleRequestDto): MessageResponseDto {
         log.info { "Смена роли пользователя с ID: $userId в проекте с ID: $projectId" }
-        val projectUser = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        val projectUser = projectUserRepository.findByProjectUuidAndUserUuid(projectId, userId)
 
         if (projectUser == null) {
             log.error { "Нет записи о пользователе с ID: $userId в проекте с ID: $projectId!" }

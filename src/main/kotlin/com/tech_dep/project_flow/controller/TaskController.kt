@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.util.UUID
 
 @Validated
 @RestController
@@ -15,7 +16,7 @@ class TaskController(
 ) {
     @GetMapping
     fun getTasksByProjectId(
-        @Positive @RequestParam projectId: Long,
+        @RequestParam projectId: UUID,
         @Positive @RequestParam(defaultValue = "1") page: Int,
         @Positive @RequestParam(defaultValue = "10") size: Int
     ): ResponseEntity<TasksByProjectResponseDto> {
@@ -28,13 +29,13 @@ class TaskController(
     }
 
     @GetMapping("/{id}")
-    fun getTaskById(@Positive @PathVariable(value = "id") taskId: Long): ResponseEntity<TaskDto> {
+    fun getTaskById(@PathVariable(value = "id") taskId: UUID): ResponseEntity<TaskDto> {
         return ResponseEntity.ok(taskService.getTaskById(taskId))
     }
 
     @PutMapping("/{id}")
     fun updateTask(
-        @Positive @PathVariable(value = "id") taskId: Long,
+        @PathVariable(value = "id") taskId: UUID,
         @RequestBody @Validated taskDto: UpdateTaskRequestDto
     ): ResponseEntity<TaskDto> {
         return ResponseEntity.ok(taskService.updateTask(taskId, taskDto))

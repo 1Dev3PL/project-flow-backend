@@ -7,6 +7,7 @@ import com.tech_dep.project_flow.enums.TaskType
 import jakarta.persistence.*
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
+import java.util.*
 
 @Table(name = "tasks")
 @Entity
@@ -14,6 +15,8 @@ data class Task(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
+    @Column(unique = true, nullable = false)
+    var uuid: UUID = UUID.randomUUID(),
     @Column(nullable = false)
     var key: String,
     @ManyToOne
@@ -34,9 +37,9 @@ data class Task(
     @Column(nullable = false)
     var status: TaskStatus,
     @Column(name = "author_id", nullable = false)
-    var authorId: Long,
+    var authorId: UUID,
     @Column(name = "executor_id")
-    var executorId: Long? = null,
+    var executorId: UUID? = null,
     @Column(name = "created_date", nullable = false, updatable = false)
     var createdDate: String,
     @Column(name = "updated_date")
@@ -44,9 +47,9 @@ data class Task(
 )
 
 fun Task.toDto(): TaskDto = TaskDto(
-    id = this.id!!,
+    id = this.uuid,
     key = this.key,
-    projectId = this.project?.id!!,
+    projectId = this.project?.uuid!!,
     title = this.title,
     description = this.description,
     type = this.type,

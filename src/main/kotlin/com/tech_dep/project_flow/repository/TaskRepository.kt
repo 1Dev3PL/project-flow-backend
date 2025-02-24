@@ -5,10 +5,13 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import java.util.*
 
 @Repository
 interface TaskRepository : JpaRepository<Task, Long> {
+    fun findByUuid(uuid: UUID): Task?
+
     fun countByProjectId(projectId: Long): Long
 
-    fun findAllByProjectId(projectId: Long, pageable: Pageable): Page<Task>
+    fun findAllByProjectUuid(projectId: UUID, pageable: Pageable): Page<Task>
 }
