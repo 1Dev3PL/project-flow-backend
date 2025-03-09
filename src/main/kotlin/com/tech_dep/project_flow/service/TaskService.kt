@@ -14,6 +14,7 @@ import com.tech_dep.project_flow.repository.TaskRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -41,9 +42,21 @@ class TaskService(
         return task.toDto()
     }
 
-    fun getTasksByProjectId(projectId: UUID, page: Int, size: Int): TasksByProjectResponseDto {
+    fun getTasksByProjectId(
+        projectId: UUID,
+        page: Int,
+        size: Int,
+        sortOrder: Sort.Direction?,
+        sortBy: String?
+    ): TasksByProjectResponseDto {
         log.info { "Получение задач проекта с ID: $projectId" }
-        val pageable: Pageable = PageRequest.of(page - 1, size)
+
+        val pageable: Pageable = if (sortOrder != null && sortBy != null) {
+            PageRequest.of(page - 1, size, Sort.by(sortOrder, sortBy))
+        } else {
+            PageRequest.of(page - 1, size, Sort.by(Sort.Direction.ASC, "id"))
+        }
+
         val tasks = taskRepository.findAllByProjectUuid(projectId, pageable)
         return TasksByProjectResponseDto(
             pagesCount = tasks.totalPages,
@@ -90,12 +103,12 @@ class TaskService(
             throw TaskNotFoundException(taskId)
         }
 
-        task.title = taskDto.title
-        task.description = taskDto.description
-        task.type = taskDto.type
-        task.status = taskDto.status
-        task.priority = taskDto.priority
-        task.executorId = taskDto.executorId
+        task.title = taskDto.title ?: task.title
+        task.description = taskDto.description ?: task.description
+        task.type = taskDto.type ?: task.type
+        task.status = taskDto.status ?: task.status
+        task.priority = taskDto.priority ?: task.priority
+        task.executorId = taskDto.executorId ?: task.executorId
         task.updatedDate = LocalDateTime.now().format(formatter)
         val updatedTask = taskRepository.save(task)
         log.info { "Задача c ID: $taskId обновлена" }
