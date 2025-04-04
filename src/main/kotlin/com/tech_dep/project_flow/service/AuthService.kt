@@ -57,7 +57,7 @@ class AuthService(
         val user = userRepository.save(newUser)
         log.info { "Пользователь ${userData.name} успешно зарегистрирован" }
 
-        val accessToken: String = jwtUtils.generateToken(user)
+        val accessToken: String = jwtUtils.generateToken(user, mapOf("id" to user.uuid))
         val refreshToken: RefreshToken = refreshTokenUtils.generateRefreshToken(user.email)
 
         val accessTokenCookie: ResponseCookie = ResponseCookie.from("accessToken", accessToken)
@@ -83,7 +83,7 @@ class AuthService(
         log.info { "Вход пользователя ${loginData.email}" }
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(loginData.email, loginData.password))
         val userData: User = userRepository.findByEmail(loginData.email)!!
-        val accessToken: String = jwtUtils.generateToken(userData)
+        val accessToken: String = jwtUtils.generateToken(userData, mapOf("id" to userData.uuid))
 
         if (refreshTokenUtils.existsByUserId(userData.id!!)) {
             refreshTokenUtils.deleteByUserId(userData.id!!)
@@ -122,7 +122,7 @@ class AuthService(
             throw InvalidTokenException()
         }
         refreshTokenUtils.verifyExpiration(token)
-        val accessToken: String = jwtUtils.generateToken(token.user!!)
+        val accessToken: String = jwtUtils.generateToken(token.user!!, mapOf("id" to token.user!!.uuid))
         val accessTokenCookie: ResponseCookie = ResponseCookie.from("accessToken", accessToken)
             .httpOnly(true)
             .secure(true)

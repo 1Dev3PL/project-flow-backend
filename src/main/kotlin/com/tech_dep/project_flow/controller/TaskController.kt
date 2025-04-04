@@ -17,30 +17,38 @@ class TaskController(
 ) {
     @GetMapping
     fun getTasksByProjectId(
+        @CookieValue(name = "accessToken") accessToken: String,
         @RequestParam projectId: UUID,
         @Positive @RequestParam(defaultValue = "1") page: Int,
         @Positive @RequestParam(defaultValue = "10") size: Int,
         @RequestParam sortOrder: Sort.Direction?,
         @RequestParam sortBy: String?
-    ): ResponseEntity<TasksByProjectResponseDto> {
-        return ResponseEntity.ok(taskService.getTasksByProjectId(projectId, page, size, sortOrder, sortBy))
+    ): ResponseEntity<List<TaskDto>> {
+        return ResponseEntity.ok(taskService.getTasksByProjectId(accessToken, projectId, page, size, sortOrder, sortBy))
     }
 
     @PostMapping
-    fun addTask(@RequestBody @Validated task: CreateTaskRequestDto): ResponseEntity<TaskDto> {
-        return ResponseEntity.ok(taskService.addTask(task))
+    fun addTask(
+        @CookieValue(name = "accessToken") accessToken: String,
+        @RequestBody @Validated task: CreateTaskRequestDto
+    ): ResponseEntity<TaskDto> {
+        return ResponseEntity.ok(taskService.addTask(accessToken, task))
     }
 
     @GetMapping("/{id}")
-    fun getTaskById(@PathVariable(value = "id") taskId: UUID): ResponseEntity<TaskDto> {
-        return ResponseEntity.ok(taskService.getTaskById(taskId))
+    fun getTaskById(
+        @CookieValue(name = "accessToken") accessToken: String,
+        @PathVariable(value = "id") taskId: UUID
+    ): ResponseEntity<TaskDto> {
+        return ResponseEntity.ok(taskService.getTaskById(accessToken, taskId))
     }
 
     @PatchMapping("/{id}")
     fun updateTask(
+        @CookieValue(name = "accessToken") accessToken: String,
         @PathVariable(value = "id") taskId: UUID,
         @RequestBody taskDto: UpdateTaskRequestDto
     ): ResponseEntity<TaskDto> {
-        return ResponseEntity.ok(taskService.updateTask(taskId, taskDto))
+        return ResponseEntity.ok(taskService.updateTask(accessToken, taskId, taskDto))
     }
 }

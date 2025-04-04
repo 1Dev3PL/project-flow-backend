@@ -18,6 +18,19 @@ data class Project(
     var description: String,
     @Column(nullable = false)
     var key: String,
+    @Column(nullable = false)
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var users: MutableList<ProjectUser> = mutableListOf(),
 )
 
 fun Project.toDto(): ProjectDto = ProjectDto(id = this.uuid, this.title, this.description, this.key)
+
+fun Project.addUser(user: ProjectUser) {
+    users.add(user)
+    user.project = this
+}
+
+fun Project.removeUser(user: ProjectUser) {
+    users.remove(user)
+    user.project = null
+}

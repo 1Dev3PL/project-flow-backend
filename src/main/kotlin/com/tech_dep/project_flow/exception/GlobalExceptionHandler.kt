@@ -58,4 +58,10 @@ class GlobalExceptionHandler {
         val response = MessageResponseDto("Parameter ${ex.parameterName} is missing", false)
         return ResponseEntity<MessageResponseDto>(response, HttpStatus.BAD_REQUEST)
     }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDeniedException(ex: AccessDeniedException): ResponseEntity<MessageResponseDto> {
+        val response = MessageResponseDto(ex.message!!, false)
+        return ResponseEntity<MessageResponseDto>(response, HttpStatus.FORBIDDEN)
+    }
 }
