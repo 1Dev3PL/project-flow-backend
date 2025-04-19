@@ -1,5 +1,6 @@
 package com.tech_dep.project_flow.dto
 
+import com.tech_dep.project_flow.entity.Task
 import com.tech_dep.project_flow.enums.TaskPriority
 import com.tech_dep.project_flow.enums.TaskStatus
 import com.tech_dep.project_flow.enums.TaskType
@@ -18,4 +19,19 @@ data class TaskDto(
     val executorId: UUID?,
     val createdDate: String,
     val updatedDate: String?,
+)
+
+fun Task.toDto(): TaskDto = TaskDto(
+    id = this.uuid,
+    key = this.key,
+    projectId = this.project?.uuid!!,
+    title = this.title,
+    description = this.description,
+    type = this.type,
+    priority = this.priority,
+    status = this.status,
+    authorId = this.authorId,
+    executorId = this.executorId,
+    createdDate = this.createdDate,
+    updatedDate = this.updatedDate,
 )

@@ -3,9 +3,9 @@ package com.tech_dep.project_flow.entity
 import jakarta.persistence.*
 import java.time.Instant
 
-@Table(name = "refresh_token")
+@Table(name = "verification_token")
 @Entity
-data class RefreshToken(
+data class VerificationToken(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,

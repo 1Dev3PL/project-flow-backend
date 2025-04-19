@@ -1,6 +1,5 @@
 package com.tech_dep.project_flow.entity
 
-import com.tech_dep.project_flow.dto.ProjectDto
 import jakarta.persistence.*
 import java.util.UUID
 
@@ -22,8 +21,6 @@ data class Project(
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     var users: MutableList<ProjectUser> = mutableListOf(),
 )
-
-fun Project.toDto(): ProjectDto = ProjectDto(id = this.uuid, this.title, this.description, this.key)
 
 fun Project.addUser(user: ProjectUser) {
     users.add(user)

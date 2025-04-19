@@ -5,14 +5,16 @@ Project-Flow is a project management service and task tracker.
 
 ## Edit .env
 
-Before running, add .env file in root folder with JWT_SECRET variable:
+Before running, add .env file in root folder with some variables:
 
 ```
-  JWT_SECRET=add_your_secret_here
+  JWT_SECRET=*secret key for jwt tokens*
+  MAIL_USERNAME=*gmail for smtp messages*
+  MAIL_PASSWORD=*gmail application password for smtp*
 ```
 ## Run Server
 
-You will need Maven, to start application.
+You will need Maven and Docker, to start application.
 To run server, use this commands:
 
 ```bash

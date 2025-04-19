@@ -13,9 +13,9 @@ import com.tech_dep.project_flow.repository.ProjectUserRepository
 import com.tech_dep.project_flow.repository.UserRepository
 import com.tech_dep.project_flow.utils.JwtUtils
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.transaction.Transactional
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
@@ -151,7 +151,7 @@ class ProjectService(
             throw ProjectNotFoundException(projectId)
         }
 
-        val user = userRepository.findByEmail(userData.email)
+        val user = userRepository.findByEmail(userData.email.lowercase())
         if (user == null) {
             log.error { "Пользователь ${userData.email} не найден" }
             throw UserNotFoundException()

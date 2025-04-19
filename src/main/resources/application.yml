@@ -2,6 +2,8 @@ server:
   port: 8081
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: Project Task service
   datasource:
@@ -24,8 +26,22 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     baseline-version: 1
     baseline-description: "init"
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    test-connection: true
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 tech_dep:
   app:
-    jwtExpirationMs: 3000000
-    jwtRefreshExpirationMs: 3000000
+    jwtExpirationMs: 3600000 # 1 hour
+    jwtRefreshExpirationMs: 3600000 # 1 hour
+    verificationExpirationMs: 21600000 # 6 hours
+    clientUrl: http://localhost:5173

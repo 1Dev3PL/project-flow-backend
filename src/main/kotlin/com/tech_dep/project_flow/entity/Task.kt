@@ -1,6 +1,5 @@
 package com.tech_dep.project_flow.entity
 
-import com.tech_dep.project_flow.dto.TaskDto
 import com.tech_dep.project_flow.enums.TaskPriority
 import com.tech_dep.project_flow.enums.TaskStatus
 import com.tech_dep.project_flow.enums.TaskType
@@ -44,19 +43,4 @@ data class Task(
     var createdDate: String,
     @Column(name = "updated_date")
     var updatedDate: String? = null
-)
-
-fun Task.toDto(): TaskDto = TaskDto(
-    id = this.uuid,
-    key = this.key,
-    projectId = this.project?.uuid!!,
-    title = this.title,
-    description = this.description,
-    type = this.type,
-    priority = this.priority,
-    status = this.status,
-    authorId = this.authorId,
-    executorId = this.executorId,
-    createdDate = this.createdDate,
-    updatedDate = this.updatedDate,
 )

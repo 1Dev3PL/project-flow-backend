@@ -4,7 +4,9 @@ import com.tech_dep.project_flow.dto.*
 import com.tech_dep.project_flow.exception.InvalidTokenException
 import com.tech_dep.project_flow.exception.UserAlreadyExistsException
 import com.tech_dep.project_flow.service.AuthService
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.constraints.NotBlank
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
@@ -41,9 +43,20 @@ class AuthController(
     @PostMapping("/register")
     fun register(
         @RequestBody @Validated body: RegisterRequestDto,
+        request: HttpServletRequest,
         response: HttpServletResponse
-    ): ResponseEntity<UserDto> =
-        ResponseEntity(authService.register(body, response), HttpStatus.CREATED)
+    ): ResponseEntity<UserDto> {
+        return ResponseEntity(authService.register(request, response, body), HttpStatus.CREATED)
+    }
+
+    @GetMapping("/confirmation")
+    fun confirmAccount(
+        @RequestParam @NotBlank(message = "token is required") token: String,
+        request: HttpServletRequest
+    ): ResponseEntity<Void> {
+        authService.confirmAccount(token, request)
+        return ResponseEntity.ok().build()
+    }
 
     @PostMapping("/login")
     fun login(@RequestBody @Validated body: LoginRequestDto, response: HttpServletResponse): ResponseEntity<UserDto> {

@@ -2,7 +2,6 @@ package com.tech_dep.project_flow.service
 
 import com.tech_dep.project_flow.dto.*
 import com.tech_dep.project_flow.entity.Task
-import com.tech_dep.project_flow.entity.toDto
 import com.tech_dep.project_flow.enums.TaskStatus
 import com.tech_dep.project_flow.exception.AccessDeniedException
 import com.tech_dep.project_flow.exception.ProjectNotFoundException

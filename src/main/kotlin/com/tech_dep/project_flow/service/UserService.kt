@@ -1,8 +1,8 @@
 package com.tech_dep.project_flow.service
 
 import com.tech_dep.project_flow.dto.UserDto
+import com.tech_dep.project_flow.dto.toDto
 import com.tech_dep.project_flow.entity.ProjectUser
-import com.tech_dep.project_flow.entity.toDto
 import com.tech_dep.project_flow.enums.UserRole
 import com.tech_dep.project_flow.exception.ProjectUserNotFoundException
 import com.tech_dep.project_flow.exception.UserNotFoundException

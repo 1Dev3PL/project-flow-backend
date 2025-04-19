@@ -1,6 +1,5 @@
 package com.tech_dep.project_flow.entity
 
-import com.tech_dep.project_flow.dto.UserDto
 import jakarta.persistence.*
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -11,16 +10,18 @@ import java.util.*
 data class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
     @Column(unique = true, nullable = false)
-    val uuid: UUID = UUID.randomUUID(),
+    var uuid: UUID = UUID.randomUUID(),
     @Column(nullable = false)
-    val name: String,
+    var name: String,
     @Column(unique = true, nullable = false)
-    val email: String,
+    var email: String,
     @get:JvmName("getUserPassword")
     @Column(nullable = false)
-    val password: String,
+    var password: String,
+    @Column(nullable = false)
+    var enabled: Boolean = false,
 ) : UserDetails {
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf()
 
@@ -34,7 +35,5 @@ data class User(
 
     override fun isCredentialsNonExpired(): Boolean = true
 
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean = enabled
 }
-
-fun User.toDto(): UserDto = UserDto(id = this.uuid, name = this.name, email = this.email)
