@@ -35,10 +35,12 @@ data class Task(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: TaskStatus,
-    @Column(name = "author_id", nullable = false)
-    var authorId: UUID,
-    @Column(name = "executor_id")
-    var executorId: UUID? = null,
+    @ManyToOne
+    @JoinColumn(name = "author_id", nullable = false)
+    var author: User,
+    @ManyToOne
+    @JoinColumn(name = "executor_id")
+    var executor: User? = null,
     @Column(name = "created_date", nullable = false, updatable = false)
     var createdDate: String,
     @Column(name = "updated_date")

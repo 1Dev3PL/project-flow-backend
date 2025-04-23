@@ -3,7 +3,6 @@ package com.tech_dep.project_flow.service
 import com.tech_dep.project_flow.dto.*
 import com.tech_dep.project_flow.entity.*
 import com.tech_dep.project_flow.enums.UserRole
-import com.tech_dep.project_flow.exception.AccessDeniedException
 import com.tech_dep.project_flow.exception.ProjectNotFoundException
 import com.tech_dep.project_flow.exception.ProjectUserNotFoundException
 import com.tech_dep.project_flow.exception.UserAlreadyInProjectException
@@ -12,6 +11,7 @@ import com.tech_dep.project_flow.repository.ProjectRepository
 import com.tech_dep.project_flow.repository.ProjectUserRepository
 import com.tech_dep.project_flow.repository.UserRepository
 import com.tech_dep.project_flow.utils.JwtUtils
+import com.tech_dep.project_flow.utils.ProjectUserUtils
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -24,6 +24,7 @@ class ProjectService(
     private val projectUserRepository: ProjectUserRepository,
     private val userRepository: UserRepository,
     private val jwtUtils: JwtUtils,
+    private val projectUserUtils: ProjectUserUtils
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -74,11 +75,7 @@ class ProjectService(
     fun getProject(accessToken: String, projectId: UUID): ProjectDto {
         log.info { "Получение проекта $projectId" }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId) == null) {
-            log.error { "Пользователь $clientId не участвует в проекте $projectId" }
-            throw AccessDeniedException("User does not participate in project")
-        }
+        projectUserUtils.checkParticipation(accessToken, projectId)
 
         val project = projectRepository.findByUuid(projectId)
 
@@ -100,11 +97,7 @@ class ProjectService(
             throw ProjectNotFoundException(projectId)
         }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId)?.role != UserRole.ADMIN) {
-            log.error { "Пользователь $clientId не имеет прав для редактирования проекта $projectId" }
-            throw AccessDeniedException("User does not have access to update project")
-        }
+        projectUserUtils.checkAdminAccess(accessToken, projectId)
 
         project.title = updateProjectRequest.title
         project.description = updateProjectRequest.description
@@ -125,11 +118,7 @@ class ProjectService(
             throw ProjectNotFoundException(projectId)
         }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId)?.role != UserRole.ADMIN) {
-            log.error { "Пользователь $clientId не имеет прав для удаления проекта $projectId" }
-            throw AccessDeniedException("User does not have access to delete project")
-        }
+        projectUserUtils.checkAdminAccess(accessToken, projectId)
 
         projectRepository.deleteByUuid(projectId)
         log.info { "Проект $projectId успешно удален" }
@@ -139,11 +128,7 @@ class ProjectService(
     fun addUser(accessToken: String, projectId: UUID, userData: AddUserRequestDto): MessageResponseDto {
         log.info { "Добавление пользователя ${userData.email} в проект $projectId" }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId)?.role != UserRole.ADMIN) {
-            log.error { "Пользователь $clientId не имеет прав для добавления пользователей в проект $projectId" }
-            throw AccessDeniedException("User does not have access to add users in project")
-        }
+        projectUserUtils.checkAdminAccess(accessToken, projectId)
 
         val project = projectRepository.findByUuid(projectId)
         if (project == null) {
@@ -173,14 +158,21 @@ class ProjectService(
         return MessageResponseDto("User was successfully added", true)
     }
 
-    fun getUsers(accessToken: String, projectId: UUID, page: Int, size: Int): List<UserWithRoleDto> {
+    fun getUsers(accessToken: String, projectId: UUID, page: Int, size: Int): List<UserDto> {
         log.info { "Получение пользователей проекта $projectId" }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId) == null) {
-            log.error { "Пользователь $clientId не имеет прав для просмотра участников проекта $projectId" }
-            throw AccessDeniedException("User does not have access to see project's participants")
-        }
+        projectUserUtils.checkParticipation(accessToken, projectId)
+
+        val pageable = PageRequest.of(page - 1, size)
+        val projectUsers = projectUserRepository.findAllByProjectUuid(projectId, pageable)
+
+        return projectUsers.content.map { it.user!!.toDto() }
+    }
+
+    fun getUsersWithRoles(accessToken: String, projectId: UUID, page: Int, size: Int): List<UserWithRoleDto> {
+        log.info { "Получение пользователей с ролями проекта $projectId" }
+
+        projectUserUtils.checkParticipation(accessToken, projectId)
 
         val pageable = PageRequest.of(page - 1, size)
         val projectUsers = projectUserRepository.findAllByProjectUuid(projectId, pageable)
@@ -199,11 +191,7 @@ class ProjectService(
     ): MessageResponseDto {
         log.info { "Смена роли пользователя $userId в проекте $projectId" }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId)?.role != UserRole.ADMIN) {
-            log.error { "Пользователь $clientId не имеет прав для изменения ролей участников проекта $projectId" }
-            throw AccessDeniedException("User does not have access to change project's participants roles")
-        }
+        projectUserUtils.checkAdminAccess(accessToken, projectId)
 
         val projectUser = projectUserRepository.findByProjectUuidAndUserUuid(projectId, userId)
 
@@ -234,15 +222,11 @@ class ProjectService(
             throw UserNotFoundException()
         }
 
-        val clientId = jwtUtils.extractId(accessToken)
-        if (projectUserRepository.findByProjectUuidAndUserUuid(projectId, clientId)?.role != UserRole.ADMIN) {
-            log.error { "Пользователь $clientId не имеет прав для исключения участников проекта $projectId" }
-            throw AccessDeniedException("User does not have access to exclude project's participants")
-        }
+        projectUserUtils.checkAdminAccess(accessToken, projectId)
 
         val projectUser = project.users.find { it.user?.uuid == userId }
         if (projectUser == null) {
-            log.error { "Пользователь $clientId не является участником проекта $projectId" }
+            log.error { "Пользователь $userId не является участником проекта $projectId" }
             throw ProjectUserNotFoundException(projectId, userId)
         }
 

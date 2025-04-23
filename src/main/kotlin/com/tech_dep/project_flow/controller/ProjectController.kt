@@ -75,8 +75,18 @@ class ProjectController(private val projectService: ProjectService) {
         @PathVariable(name = "id") projectId: UUID,
         @Positive @RequestParam(defaultValue = "1") page: Int,
         @Positive @RequestParam(defaultValue = "10") size: Int,
-    ): ResponseEntity<List<UserWithRoleDto>> {
+    ): ResponseEntity<List<UserDto>> {
         return ResponseEntity.ok(projectService.getUsers(accessToken, projectId, page, size))
+    }
+
+    @GetMapping("/{id}/users-with-roles")
+    fun getUsersWithRoles(
+        @CookieValue(name = "accessToken") accessToken: String,
+        @PathVariable(name = "id") projectId: UUID,
+        @Positive @RequestParam(defaultValue = "1") page: Int,
+        @Positive @RequestParam(defaultValue = "10") size: Int,
+    ): ResponseEntity<List<UserWithRoleDto>> {
+        return ResponseEntity.ok(projectService.getUsersWithRoles(accessToken, projectId, page, size))
     }
 
     @PostMapping("/{projectId}/users/{userId}/role")

@@ -51,8 +51,10 @@ create table tasks
     project_id   bigint       not null
         references projects
         on delete cascade,
-    author_id    uuid         not null,
-    executor_id  uuid,
+    author_id    bigint       not null
+        references users,
+    executor_id  bigint
+        references users,
     uuid         uuid         not null
         unique,
     created_date varchar(255) not null,

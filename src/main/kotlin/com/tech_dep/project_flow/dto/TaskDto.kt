@@ -8,15 +8,15 @@ import java.util.*
 
 data class TaskDto(
     val id: UUID,
-    val projectId: UUID,
+    val project: ProjectDto,
     val key: String,
     val title: String,
     val description: String,
     val type: TaskType,
     val priority: TaskPriority,
     val status: TaskStatus,
-    val authorId: UUID,
-    val executorId: UUID?,
+    val author: UserDto,
+    val executor: UserDto?,
     val createdDate: String,
     val updatedDate: String?,
 )
@@ -24,14 +24,14 @@ data class TaskDto(
 fun Task.toDto(): TaskDto = TaskDto(
     id = this.uuid,
     key = this.key,
-    projectId = this.project?.uuid!!,
+    project = this.project?.toDto()!!,
     title = this.title,
     description = this.description,
     type = this.type,
     priority = this.priority,
     status = this.status,
-    authorId = this.authorId,
-    executorId = this.executorId,
+    author = this.author.toDto(),
+    executor = this.executor?.toDto(),
     createdDate = this.createdDate,
     updatedDate = this.updatedDate,
 )
