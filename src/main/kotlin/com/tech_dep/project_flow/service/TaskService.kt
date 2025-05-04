@@ -56,6 +56,11 @@ class TaskService(
     ): List<TaskDto> {
         log.info { "Получение задач проекта с ID: $projectId" }
 
+        if (projectRepository.findByUuid(projectId) == null) {
+            log.error { "Проект с ID $projectId не найден!" }
+            throw ProjectNotFoundException(projectId)
+        }
+
         projectUserUtils.checkParticipation(accessToken, projectId)
 
         val pageable: Pageable = if (sortOrder != null && sortBy != null) {
@@ -66,7 +71,23 @@ class TaskService(
 
         val tasks = taskRepository.findAllByProjectUuid(projectId, pageable)
 
-        return tasks.content.map { it.toDto() }
+        return tasks.map { it.toDto() }
+    }
+
+    fun getTasksForDashboard(
+        accessToken: String,
+        projectId: UUID
+    ): DashboardTasksResponseDto {
+        log.info { "Получение задач лля доски проекта с ID: $projectId" }
+
+        projectUserUtils.checkParticipation(accessToken, projectId)
+
+        val tasks = taskRepository.findAllByProjectUuid(projectId, Pageable.unpaged())
+        val dashboardTasks = DashboardTasksResponseDto()
+
+        tasks.forEach { task -> dashboardTasks.getTasksByStatus(task.status).add(task.toDto()) }
+
+        return dashboardTasks
     }
 
     fun addTask(accessToken: String, taskDto: CreateTaskRequestDto): TaskDto {
@@ -115,7 +136,7 @@ class TaskService(
         val task = taskRepository.findByUuid(taskId)
 
         if (task == null) {
-            log.error { "Задача с ID: $taskId не найдена для обновления" }
+            log.error { "Задача с ID: $taskId не найдена" }
             throw TaskNotFoundException(taskId)
         }
 
@@ -138,5 +159,21 @@ class TaskService(
         log.info { "Задача c ID: $taskId обновлена" }
 
         return updatedTask.toDto()
+    }
+
+    fun deleteTask(accessToken: String, taskId: UUID) {
+        log.info { "Удаление задачи c ID: $taskId" }
+        val task = taskRepository.findByUuid(taskId)
+
+        if (task == null) {
+            log.error { "Задача с ID: $taskId не найдена" }
+            throw TaskNotFoundException(taskId)
+        }
+
+        projectUserUtils.checkAdminAccess(accessToken, task.project!!.uuid)
+
+        taskRepository.delete(task)
+
+        log.info { "Задача $taskId удалена" }
     }
 }

@@ -8,6 +8,4 @@ import java.util.*
 @Repository
 interface ProjectRepository : JpaRepository<Project, Long> {
     fun findByUuid(uuid: UUID): Project?
-
-    fun deleteByUuid(uuid: UUID)
 }

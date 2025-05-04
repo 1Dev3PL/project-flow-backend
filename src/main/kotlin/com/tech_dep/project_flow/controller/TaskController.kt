@@ -27,6 +27,14 @@ class TaskController(
         return ResponseEntity.ok(taskService.getTasksByProjectId(accessToken, projectId, page, size, sortOrder, sortBy))
     }
 
+    @GetMapping("/dashboard")
+    fun getTasksForDashboard(
+        @CookieValue(name = "accessToken") accessToken: String,
+        @RequestParam projectId: UUID,
+    ): ResponseEntity<DashboardTasksResponseDto> {
+        return ResponseEntity.ok(taskService.getTasksForDashboard(accessToken, projectId))
+    }
+
     @PostMapping
     fun addTask(
         @CookieValue(name = "accessToken") accessToken: String,
@@ -50,5 +58,14 @@ class TaskController(
         @RequestBody taskDto: UpdateTaskRequestDto
     ): ResponseEntity<TaskDto> {
         return ResponseEntity.ok(taskService.updateTask(accessToken, taskId, taskDto))
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteTask(
+        @CookieValue(name = "accessToken") accessToken: String,
+        @PathVariable(value = "id") taskId: UUID
+    ): ResponseEntity<TaskDto> {
+        taskService.deleteTask(accessToken, taskId)
+        return ResponseEntity.noContent().build()
     }
 }

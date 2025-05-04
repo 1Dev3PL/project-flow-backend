@@ -120,7 +120,7 @@ class ProjectService(
 
         projectUserUtils.checkAdminAccess(accessToken, projectId)
 
-        projectRepository.deleteByUuid(projectId)
+        projectRepository.delete(project)
         log.info { "Проект $projectId успешно удален" }
     }
 
