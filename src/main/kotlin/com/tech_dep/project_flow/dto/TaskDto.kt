@@ -24,7 +24,7 @@ data class TaskDto(
 fun Task.toDto(): TaskDto = TaskDto(
     id = this.uuid,
     key = this.key,
-    project = this.project?.toDto()!!,
+    project = this.project.toDto(),
     title = this.title,
     description = this.description,
     type = this.type,

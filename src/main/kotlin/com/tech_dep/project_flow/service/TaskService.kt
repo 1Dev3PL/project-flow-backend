@@ -1,5 +1,6 @@
 package com.tech_dep.project_flow.service
 
+import com.fanmaum.lexorank.LexoRank
 import com.tech_dep.project_flow.dto.*
 import com.tech_dep.project_flow.entity.Task
 import com.tech_dep.project_flow.enums.TaskStatus
@@ -39,7 +40,7 @@ class TaskService(
             throw TaskNotFoundException(taskId)
         }
 
-        projectUserUtils.checkParticipation(accessToken, task.project!!.uuid)
+        projectUserUtils.checkParticipation(accessToken, task.project.uuid)
 
         log.info { "Задача с ID: $taskId найдена" }
 
@@ -82,7 +83,7 @@ class TaskService(
 
         projectUserUtils.checkParticipation(accessToken, projectId)
 
-        val tasks = taskRepository.findAllByProjectUuid(projectId, Pageable.unpaged())
+        val tasks = taskRepository.findAllByProjectUuidOrderByRank(projectId)
         val dashboardTasks = DashboardTasksResponseDto()
 
         tasks.forEach { task -> dashboardTasks.getTasksByStatus(task.status).add(task.toDto()) }
@@ -111,6 +112,13 @@ class TaskService(
 
         val executor = taskDto.executorId?.let { userRepository.findByUuid(it) }
 
+        val lastRank = taskRepository.findLastRank(project.uuid, TaskStatus.OPEN)
+        val rank = if (lastRank != null) {
+            LexoRank(lastRank).genNext().toString()
+        } else {
+            LexoRank.middle().toString()
+        }
+
         val newTask = Task(
             project = project,
             title = taskDto.title,
@@ -122,12 +130,56 @@ class TaskService(
             author = author,
             executor = executor,
             createdDate = LocalDateTime.now().format(formatter),
+            rank = rank
         )
 
         val savedTask = taskRepository.save(newTask)
         log.info { "Задача '${taskDto.title}' добавлена" }
 
         return savedTask.toDto()
+    }
+
+    fun changeTaskPosition(accessToken: String, taskPositionData: TaskPositionRequestDto) {
+        log.info { "Перемещение задачи c ID: ${taskPositionData.taskId}" }
+
+        val task = taskRepository.findByUuid(taskPositionData.taskId)
+
+        if (task == null) {
+            log.error { "Задача с ID: ${taskPositionData.taskId} не найдена" }
+            throw TaskNotFoundException(taskPositionData.taskId)
+        }
+
+        projectUserUtils.checkParticipation(accessToken, task.project.uuid)
+
+        if (taskPositionData.beforeId == null && taskPositionData.afterId == null) {
+            task.rank = LexoRank.middle().toString()
+        } else if (taskPositionData.beforeId != null && taskPositionData.afterId != null) {
+            val prevTask = taskRepository.findByUuid(taskPositionData.afterId) ?: throw TaskNotFoundException(
+                taskPositionData.afterId
+            )
+            val nextTask = taskRepository.findByUuid(taskPositionData.beforeId) ?: throw TaskNotFoundException(
+                taskPositionData.beforeId
+            )
+            task.rank = LexoRank(prevTask.rank).between(LexoRank(nextTask.rank)).toString()
+        } else if (taskPositionData.beforeId != null) {
+            val nextTask = taskRepository.findByUuid(taskPositionData.beforeId) ?: throw TaskNotFoundException(
+                taskPositionData.beforeId
+            )
+            task.rank = LexoRank(nextTask.rank).genPrev().toString()
+        } else {
+            val prevTask = taskRepository.findByUuid(taskPositionData.afterId!!) ?: throw TaskNotFoundException(
+                taskPositionData.afterId
+            )
+            task.rank = LexoRank(prevTask.rank).genNext().toString()
+        }
+
+        if (taskPositionData.status != null) {
+            task.status = taskPositionData.status
+        }
+
+        taskRepository.save(task)
+
+        log.info { "Задача перемещена" }
     }
 
     @Transactional
@@ -140,7 +192,7 @@ class TaskService(
             throw TaskNotFoundException(taskId)
         }
 
-        projectUserUtils.checkParticipation(accessToken, task.project!!.uuid)
+        projectUserUtils.checkParticipation(accessToken, task.project.uuid)
 
         val executor = when (taskDto.executorId) {
             null -> task.executor
@@ -148,10 +200,20 @@ class TaskService(
             else -> userRepository.findByUuid(UUID.fromString(taskDto.executorId))
         }
 
+        if (taskDto.status != null) {
+            val lastRank = taskRepository.findLastRank(task.project.uuid, taskDto.status)
+
+            task.status = taskDto.status
+            task.rank = if (lastRank != null) {
+                LexoRank(lastRank).genNext().toString()
+            } else {
+                LexoRank.middle().toString()
+            }
+        }
+
         task.title = taskDto.title ?: task.title
         task.description = taskDto.description ?: task.description
         task.type = taskDto.type ?: task.type
-        task.status = taskDto.status ?: task.status
         task.priority = taskDto.priority ?: task.priority
         task.executor = executor
         task.updatedDate = LocalDateTime.now().format(formatter)
@@ -170,7 +232,7 @@ class TaskService(
             throw TaskNotFoundException(taskId)
         }
 
-        projectUserUtils.checkAdminAccess(accessToken, task.project!!.uuid)
+        projectUserUtils.checkAdminAccess(accessToken, task.project.uuid)
 
         taskRepository.delete(task)
 

@@ -21,8 +21,8 @@ class TaskController(
         @RequestParam projectId: UUID,
         @Positive @RequestParam(defaultValue = "1") page: Int,
         @Positive @RequestParam(defaultValue = "10") size: Int,
-        @RequestParam sortOrder: Sort.Direction?,
-        @RequestParam sortBy: String?
+        @RequestParam(defaultValue = "ASC") sortOrder: Sort.Direction?,
+        @RequestParam(defaultValue = "key") sortBy: String?
     ): ResponseEntity<List<TaskDto>> {
         return ResponseEntity.ok(taskService.getTasksByProjectId(accessToken, projectId, page, size, sortOrder, sortBy))
     }
@@ -33,6 +33,15 @@ class TaskController(
         @RequestParam projectId: UUID,
     ): ResponseEntity<DashboardTasksResponseDto> {
         return ResponseEntity.ok(taskService.getTasksForDashboard(accessToken, projectId))
+    }
+
+    @PostMapping("/dashboard/change-position")
+    fun changeTaskPosition(
+        @CookieValue(name = "accessToken") accessToken: String,
+        @RequestBody taskPositionData: TaskPositionRequestDto,
+    ): ResponseEntity<Void> {
+        taskService.changeTaskPosition(accessToken, taskPositionData)
+        return ResponseEntity.ok().build()
     }
 
     @PostMapping
@@ -64,7 +73,7 @@ class TaskController(
     fun deleteTask(
         @CookieValue(name = "accessToken") accessToken: String,
         @PathVariable(value = "id") taskId: UUID
-    ): ResponseEntity<TaskDto> {
+    ): ResponseEntity<Void> {
         taskService.deleteTask(accessToken, taskId)
         return ResponseEntity.noContent().build()
     }

@@ -21,7 +21,7 @@ data class Task(
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    var project: Project? = null,
+    var project: Project,
     @Column(nullable = false)
     var title: String,
     @Column(columnDefinition = "TEXT")
@@ -44,5 +44,7 @@ data class Task(
     @Column(name = "created_date", nullable = false, updatable = false)
     var createdDate: String,
     @Column(name = "updated_date")
-    var updatedDate: String? = null
+    var updatedDate: String? = null,
+    @Column(nullable = false)
+    var rank: String
 )

@@ -73,7 +73,8 @@ create table tasks
         constraint tasks_type_check
             check ((type)::text = ANY
                    ((ARRAY ['EPIC'::character varying, 'BUG'::character varying, 'TASK'::character varying, 'STORY'::character varying, 'SUBTASK'::character varying])::text[])),
-    updated_date varchar(255)
+    updated_date varchar(255),
+    rank         varchar(9) not null
 );
 
 create table projects_to_users
@@ -87,4 +88,4 @@ create table projects_to_users
     role       varchar(255) not null
         constraint projects_to_users_role_check
             check ((role)::text = ANY ((ARRAY ['ADMIN'::character varying, 'DEVELOPER'::character varying])::text[]))
-    );
+);
