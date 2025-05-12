@@ -9,9 +9,43 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "15432:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - project-flow
+
+  backend:
+    image: 1dev3pl/project-flow-backend
+    container_name: project-flow-backend
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/project_flow_db?charSet=UTF8
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: postgres
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - project-flow
+
+  frontend:
+    image: 1dev3pl/project-flow-frontend
+    container_name: project-flow-frontend
+    environment:
+      VITE_SERVER_URL: http://project-flow-backend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - project-flow
 
 volumes:
   postgres_data:
+
+networks:
+  project-flow:
+    driver: bridge

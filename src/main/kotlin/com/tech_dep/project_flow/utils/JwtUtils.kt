@@ -1,7 +1,6 @@
 package com.tech_dep.project_flow.utils
 
 import com.tech_dep.project_flow.entity.User
-import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
@@ -17,9 +16,9 @@ import kotlin.collections.HashMap
 class JwtUtils(
     @Value("\${tech_dep.app.jwtExpirationMs}")
     private val jwtExpirationMs: Long,
+    @Value("\${tech_dep.app.jwtSecret}")
+    private val jwtSecret: String,
 ) {
-    val dotenv: Dotenv = Dotenv.load()
-
     fun extractUsername(token: String): String = extractClaim(token, Claims::getSubject)
 
     fun extractId(token: String): UUID = extractClaim(token, fun(claims: Claims): UUID = UUID.fromString(claims["id"] as String))
@@ -49,7 +48,7 @@ class JwtUtils(
         Jwts.parser().verifyWith(getSignInKey()).build().parseSignedClaims(token).payload
 
     private fun getSignInKey(): SecretKey {
-        val keyBytes: ByteArray = Decoders.BASE64.decode(dotenv.get("JWT_SECRET"))
+        val keyBytes: ByteArray = Decoders.BASE64.decode(jwtSecret)
         return Keys.hmacShaKeyFor(keyBytes)
     }
 }
