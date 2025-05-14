@@ -18,21 +18,21 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Stopping and removing existing containers..."
-docker-compose down
+docker compose down
 if [ $? -ne 0 ]; then
   echo "Failed to stop and remove containers."
   exit 1
 fi
 
 echo "Rebuilding Docker Compose services..."
-docker-compose build --no-cache
+docker compose build --no-cache
 if [ $? -ne 0 ]; then
   echo "Failed to rebuild services."
   exit 1
 fi
 
 echo "Starting Docker Compose services..."
-docker-compose up -d
+docker compose up -d
 if [ $? -ne 0 ]; then
   echo "Failed to start services."
   exit 1
