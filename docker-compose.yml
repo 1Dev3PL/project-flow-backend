@@ -34,8 +34,6 @@ services:
   frontend:
     image: 1dev3pl/project-flow-frontend
     container_name: project-flow-frontend
-    environment:
-      VITE_SERVER_URL: http://project-flow-backend
     ports:
       - "80:80"
     depends_on:
