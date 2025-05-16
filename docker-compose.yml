@@ -36,6 +36,9 @@ services:
     container_name: project-flow-frontend
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt/live/project-flow.ru:/etc/letsencrypt/live/project-flow.ru:ro
     depends_on:
       - backend
     networks:
