@@ -10,7 +10,12 @@ class CorsConfig {
     @Bean
     fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("http://localhost", "http://localhost:5173", "http://188.68.221.127")
+        configuration.allowedOrigins = listOf(
+            "http://localhost",
+            "http://localhost:5173",
+            "https://project-flow.ru",
+            "https://www.project-flow.ru"
+        )
         configuration.allowCredentials = true
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("Authorization", "Content-Type")
