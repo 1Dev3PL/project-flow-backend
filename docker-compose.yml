@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -39,6 +37,7 @@ services:
       - "443:443"
     volumes:
       - /etc/letsencrypt/live/project-flow.ru:/etc/letsencrypt/live/project-flow.ru:ro
+      - /etc/letsencrypt/archive/project-flow.ru:/etc/letsencrypt/archive/project-flow.ru:ro
     depends_on:
       - backend
     networks:
