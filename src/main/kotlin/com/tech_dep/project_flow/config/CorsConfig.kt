@@ -17,10 +17,12 @@ class CorsConfig {
             "https://www.project-flow.ru"
         )
         configuration.allowCredentials = true
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         configuration.allowedHeaders = listOf("Authorization", "Content-Type")
+
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
+
         return source
     }
 }
