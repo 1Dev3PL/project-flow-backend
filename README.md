@@ -14,7 +14,7 @@ Before running, add .env file in root folder with some variables:
   CLIENT_URL=*base url of client for confirmation link*
   POSTGRES_URL=*
   POSTGRES_DB=*
-  POSTGRES_USERNAME=*
+  POSTGRES_USER=*
   POSTGRES_PASSWORD=*
 ```
 ## Run Server
@@ -23,5 +23,6 @@ You will need Docker, to start application.
 To run server, use this command:
 
 ```bash
+  docker build -f Dockerfile -t 1dev3pl/project-flow-backend .
   docker compose up
 ```
