@@ -17,7 +17,7 @@ services:
     image: 1dev3pl/project-flow-backend
     container_name: project-flow-backend
     environment:
-      CLIENT_URL: https://project-flow.ru
+      POSTGRES_URL: ${POSTGRES_URL:-jdbc:postgresql://postgres:5432/project_flow_db?charSet=UTF8}
     env_file:
       - .env
     ports:
