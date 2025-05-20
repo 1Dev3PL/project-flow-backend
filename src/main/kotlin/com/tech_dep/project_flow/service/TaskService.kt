@@ -238,4 +238,8 @@ class TaskService(
 
         log.info { "Задача $taskId удалена" }
     }
+
+    fun clearExecutor(projectId: UUID, executorId: UUID) {
+        taskRepository.clearExecutor(projectId, executorId)
+    }
 }

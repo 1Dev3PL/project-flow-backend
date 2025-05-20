@@ -11,7 +11,6 @@ Before running, add .env file in root folder with some variables:
   JWT_SECRET=*secret key for jwt tokens*
   MAIL_USERNAME=*gmail for smtp messages*
   MAIL_PASSWORD=*gmail application password for smtp*
-  CLIENT_URL=*base url of client for confirmation link*
   POSTGRES_URL=*
   POSTGRES_DB=*
   POSTGRES_USER=*

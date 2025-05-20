@@ -4,6 +4,7 @@ import com.tech_dep.project_flow.entity.Task
 import com.tech_dep.project_flow.enums.TaskStatus
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.util.*
@@ -20,4 +21,8 @@ interface TaskRepository : JpaRepository<Task, Long> {
 
     @Query("SELECT t.rank FROM Task t WHERE t.project.uuid = :projectId AND t.status = :status ORDER BY t.rank DESC LIMIT 1")
     fun findLastRank(projectId: UUID, status: TaskStatus): String?
+
+    @Modifying
+    @Query("UPDATE Task t SET t.executor = NULL WHERE t.project.uuid = :projectId AND t.executor.uuid = :executorId")
+    fun clearExecutor(projectId: UUID, executorId: UUID)
 }

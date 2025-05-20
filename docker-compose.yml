@@ -16,6 +16,8 @@ services:
   backend:
     image: 1dev3pl/project-flow-backend
     container_name: project-flow-backend
+    environment:
+      CLIENT_URL: https://project-flow.ru
     env_file:
       - .env
     ports:

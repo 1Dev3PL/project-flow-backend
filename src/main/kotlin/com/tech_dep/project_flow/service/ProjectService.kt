@@ -24,7 +24,8 @@ class ProjectService(
     private val projectUserRepository: ProjectUserRepository,
     private val userRepository: UserRepository,
     private val jwtUtils: JwtUtils,
-    private val projectUserUtils: ProjectUserUtils
+    private val projectUserUtils: ProjectUserUtils,
+    private val taskService: TaskService
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -231,6 +232,8 @@ class ProjectService(
         }
 
         project.removeUser(projectUser)
+
+        taskService.clearExecutor(projectId, userId)
 
         log.info { "Пользователь исключен" }
     }
